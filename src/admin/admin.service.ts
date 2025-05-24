@@ -2,7 +2,7 @@ import * as bcryptjs from "bcryptjs";
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import type { IResponse } from "./common/interfaces/response.interface";
+import type { IResponse } from "../common/interfaces/response.interface";
 import { Admin } from "./entities/admin.entity";
 import { CreateAdminDto } from "./dto/create-admin.dto";
 import { UpdateAdminDto } from "./dto/update-admin.dto";
@@ -87,13 +87,13 @@ export class AdminService {
   }
 
   async remove(id: number) {
-    const adminExists: Admin | null = await this.adminExists(id);
+    const admin: Admin | null = await this.adminExists(id);
 
     const result = await this.adminRepository.delete({ id });
     if (result.affected === 0) throw new HttpException("Failed to remove admin", HttpStatus.BAD_REQUEST);
 
     return {
-      data: adminExists,
+      data: admin,
       message: "Admin removed",
       statusCode: HttpStatus.OK,
     };
