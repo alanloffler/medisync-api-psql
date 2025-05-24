@@ -2,8 +2,8 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 import { DataSource } from "typeorm";
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { Admin } from "./admin/entities/admin.entity";
 import { AdminModule } from "./admin/admin.module";
+import { UsersModule } from "./users/users.module";
 
 @Module({
   imports: [
@@ -12,7 +12,6 @@ import { AdminModule } from "./admin/admin.module";
       isGlobal: true,
       cache: true,
     }),
-    AdminModule,
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -23,10 +22,12 @@ import { AdminModule } from "./admin/admin.module";
         username: configService.get<string>("DB_USERNAME"),
         password: configService.get<string>("DB_PASSWORD"),
         database: configService.get<string>("DB_DATABASE"),
-        entities: [Admin],
+        entities: [__dirname + "/**/*.entity{.ts,.js}"],
         synchronize: true, // WARNING: Disable synchronization in production
       }),
     }),
+    AdminModule,
+    UsersModule,
   ],
   controllers: [],
   providers: [],
