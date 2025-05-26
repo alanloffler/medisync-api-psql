@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { ILike, Repository } from "typeorm";
+import { ILike, Raw, Repository } from "typeorm";
 import type { IResponse } from "../common/interfaces/response.interface";
 import type { IUsersData } from "./interfaces/user-data.interface";
 import { CreateUserDto } from "./dto/create-user.dto";
@@ -31,7 +31,7 @@ export class UsersService {
   async findAll(data: UserParamsDto): Promise<IResponse<IUsersData>> {
     const { search = "", limit, skip, sortingKey, sortingValue } = data;
     let sorting = {};
-    let sk: string = "firstName";
+    let sk: string = "lastName";
     if (sortingKey) sk = sortingKey;
     if (sortingValue === "asc") sorting = { [sk]: 1 };
     if (sortingValue === "desc") sorting = { [sk]: -1 };
@@ -43,18 +43,64 @@ export class UsersService {
       ],
       order: sorting,
       skip: skip ? parseInt(skip, 10) : 0,
-      take: limit ? parseInt(limit, 10) : 1000,
+      take: limit ? parseInt(limit, 10) : 100,
     });
 
     if (users.length === 0) throw new HttpException("Users not found", HttpStatus.NOT_FOUND);
     if (!users) throw new HttpException("Error fetching users", HttpStatus.BAD_REQUEST);
 
-    const count: number = users.length;
-    const pageTotal: number = Math.floor((count - 1) / parseInt(limit)) + 1;
-    const data2: IUsersData = { total: pageTotal, count: count, data: users };
+    const count: number = await this.userRepository.count({
+      where: [
+        { isDeleted: false, firstName: ILike(`%${search}%`) },
+        { isDeleted: false, lastName: ILike(`%${search}%`) },
+      ],
+    });
+    const _limit: number = parseInt(limit) > 0 ? parseInt(limit) : 100;
+    const pageTotal: number = count ? Math.floor((count - 1) / _limit) + 1 : 0;
+    const usersData: IUsersData = { total: pageTotal, count: count, data: users };
 
     return {
-      data: data2,
+      data: usersData,
+      message: "Users found",
+      statusCode: HttpStatus.OK,
+    };
+  }
+
+  async findAllByIdentityNumber(data: UserParamsDto): Promise<IResponse<IUsersData>> {
+    const { search, limit, skip, sortingKey, sortingValue } = data;
+    let sorting = {};
+    let sk: string = "lastName";
+    if (sortingKey) sk = sortingKey;
+    if (sortingValue === "asc") sorting = { [sk]: 1 };
+    if (sortingValue === "desc") sorting = { [sk]: -1 };
+
+    const users: User[] = await this.userRepository.find({
+      where: [
+        {
+          isDeleted: false,
+          dni: Raw((alias) => `CAST(${alias} AS TEXT) LIKE :search`, { search: `${search}%` }),
+        },
+      ],
+      order: sorting,
+      skip: skip ? parseInt(skip, 10) : 0,
+      take: limit ? parseInt(limit, 10) : 100,
+    });
+
+    if (users.length === 0) throw new HttpException("Users not found", HttpStatus.NOT_FOUND);
+    if (!users) throw new HttpException("Error fetching users", HttpStatus.BAD_REQUEST);
+
+    const count: number = await this.userRepository.count({
+      where: {
+        isDeleted: false,
+        dni: Raw((alias) => `CAST(${alias} AS TEXT) LIKE :search`, { search: `${search}%` }),
+      },
+    });
+    const _limit: number = parseInt(limit) > 0 ? parseInt(limit) : 100;
+    const pageTotal: number = count ? Math.floor((count - 1) / _limit) + 1 : 0;
+    const usersData: IUsersData = { total: pageTotal, count: count, data: users };
+
+    return {
+      data: usersData,
       message: "Users found",
       statusCode: HttpStatus.OK,
     };
