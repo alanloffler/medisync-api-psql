@@ -18,6 +18,11 @@ export class UsersController {
     return this.usersService.findAll(data);
   }
 
+  @Get("byIdentityNumber")
+  findAllByIdentityNumber(@Query(new ValidationPipe({ transform: true })) data: UserParamsDto) {
+    return this.usersService.findAllByIdentityNumber(data);
+  }
+
   @Get(":id")
   findOne(@Param("id", ParseIntPipe) id: number) {
     return this.usersService.findOne(id);
