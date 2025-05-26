@@ -33,6 +33,11 @@ export class UsersController {
     return this.usersService.findRemovedUsers();
   }
 
+  @Patch("delete/:id")
+  delete(@Param("id", ParseIntPipe) id: number) {
+    return this.usersService.delete(id);
+  }
+
   @Get(":id")
   findOne(@Param("id", ParseIntPipe) id: number) {
     return this.usersService.findOne(id);
