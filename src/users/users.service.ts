@@ -226,6 +226,23 @@ export class UsersService {
     };
   }
 
+  async restore(id: number): Promise<IResponse<User | null>> {
+    const result = await this.userRepository.update(id, { isDeleted: false });
+    if (result.affected === 0) throw new HttpException("User not restored", HttpStatus.BAD_REQUEST);
+
+    let user: User | null = null;
+    if (result.affected && result.affected > 0) {
+      user = await this.userRepository.findOne({ where: { id: id, isDeleted: false } });
+      if (!user) throw new HttpException("User not found", HttpStatus.BAD_REQUEST);
+    }
+
+    return {
+      data: user,
+      message: "User restored",
+      statusCode: HttpStatus.OK,
+    };
+  }
+
   private async userExists(id: number): Promise<User | null> {
     const user: User | null = await this.userRepository.findOne({
       where: { id },
