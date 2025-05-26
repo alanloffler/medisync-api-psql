@@ -23,6 +23,11 @@ export class UsersController {
     return this.usersService.findAllByIdentityNumber(data);
   }
 
+  @Get("newUsersToday")
+  newUsersToday() {
+    return this.usersService.newUsersToday();
+  }
+
   @Get(":id")
   findOne(@Param("id", ParseIntPipe) id: number) {
     return this.usersService.findOne(id);
