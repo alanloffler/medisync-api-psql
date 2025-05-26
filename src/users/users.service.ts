@@ -1,7 +1,8 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { ILike, Raw, Repository } from "typeorm";
+import { ILike, MoreThanOrEqual, Raw, Repository } from "typeorm";
 import type { IResponse } from "../common/interfaces/response.interface";
+import type { IUserStats } from "./interfaces/user-stats.interface";
 import type { IUsersData } from "./interfaces/user-data.interface";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
@@ -159,6 +160,34 @@ export class UsersService {
     return {
       data: user,
       message: "User deleted",
+      statusCode: HttpStatus.OK,
+    };
+  }
+
+  async newUsersToday(): Promise<IResponse<IUserStats>> {
+    const countAll: number = await this.userRepository.countBy({ isDeleted: false });
+    if (!countAll) throw new HttpException("Error counting users", HttpStatus.BAD_REQUEST);
+
+    const today: Date = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const countToday: number = await this.userRepository.count({
+      where: {
+        createdAt: MoreThanOrEqual(today),
+        isDeleted: false,
+      },
+    });
+    if (countToday === undefined || countToday === null) throw new HttpException("Error counting today new users", HttpStatus.BAD_REQUEST);
+
+    const data: IUserStats = {
+      percentage: countToday ? (countToday * 100) / countAll : 0,
+      today: countToday,
+      total: countAll,
+    };
+
+    return {
+      data: data,
+      message: "New users today",
       statusCode: HttpStatus.OK,
     };
   }
