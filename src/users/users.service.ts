@@ -192,6 +192,18 @@ export class UsersService {
     };
   }
 
+  async findRemovedUsers(): Promise<IResponse<User[]>> {
+    const users: User[] = await this.userRepository.find({ where: { isDeleted: true } });
+    if (users.length === 0) return { data: [], message: "Users not found", statusCode: HttpStatus.NOT_FOUND };
+    if (!users) throw new HttpException("Error finding users removed", HttpStatus.BAD_REQUEST);
+
+    return {
+      data: users,
+      message: "Users removed found",
+      statusCode: HttpStatus.OK,
+    };
+  }
+
   private async userExists(id: number): Promise<User | null> {
     const user: User | null = await this.userRepository.findOne({
       where: { id },
