@@ -28,6 +28,11 @@ export class UsersController {
     return this.usersService.newUsersToday();
   }
 
+  @Get("removedUsers")
+  findRemovedUsers() {
+    return this.usersService.findRemovedUsers();
+  }
+
   @Get(":id")
   findOne(@Param("id", ParseIntPipe) id: number) {
     return this.usersService.findOne(id);
