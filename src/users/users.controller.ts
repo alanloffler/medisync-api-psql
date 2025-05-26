@@ -38,6 +38,11 @@ export class UsersController {
     return this.usersService.delete(id);
   }
 
+  @Patch("restore/:id")
+  restore(@Param("id", ParseIntPipe) id: number) {
+    return this.usersService.restore(id);
+  }
+
   @Get(":id")
   findOne(@Param("id", ParseIntPipe) id: number) {
     return this.usersService.findOne(id);
