@@ -8,6 +8,13 @@ async function bootstrap() {
 
   app.use(cookieParser());
 
+  app.enableCors({
+    allowHeaders: ["Content-Type", "Authorization", "x-lang"],
+    credentials: true,
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    origin: [process.env.FRONTEND_URL?.toString()],
+  });
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -19,5 +26,4 @@ async function bootstrap() {
   await app.listen(process.env.PORT ?? 3000);
 }
 
-// eslint-disable-next-line
-bootstrap();
+void bootstrap();
